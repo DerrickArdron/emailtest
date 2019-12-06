@@ -1,4 +1,6 @@
-import smtplib, ssl
+import email,smtplib, ssl
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -32,10 +34,29 @@ html = """\
 part1 = MIMEText(text, "plain")
 part2 = MIMEText(html, "html")
 
+filename = "Bucks PGL Survey v04.pdf"  # In same directory as script
+print(filename)
+# Open PDF file in binary mode
+with open(filename, "rb") as attachment:
+    print(attachment)
+    # Add file as application/octet-stream
+    # Email client can usually download this automatically as attachment
+    part3 = MIMEBase("application", "octet-stream")
+    part3.set_payload(attachment.read())
+
+# Encode file in ASCII characters to send by email
+encoders.encode_base64(part3)
+
+# Add header as key/value pair to attachment part
+part3.add_header(
+    "Content-Disposition",
+    f"attachment; filename= {filename}",
+)
 # Add HTML/plain-text parts to MIMEMultipart message
 # The email client will try to render the last part first
 message.attach(part1)
 message.attach(part2)
+message.attach(part3)
 #print(message.as_string())
 # Create secure connection with server and send email
 context = ssl.create_default_context()
